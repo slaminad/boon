@@ -90,7 +90,7 @@ type rowScanner interface {
 	Scan(dest ...interface{}) error
 }
 
-// scanReport reads a book from a sql.Row or sql.Rows
+// scanReport reads a report from a sql.Row or sql.Rows
 func scanReport(s rowScanner) (*Report, error) {
 	var (
 		id     int64
@@ -113,9 +113,9 @@ func scanReport(s rowScanner) (*Report, error) {
 	return r, nil
 }
 
-const listStatement = `SELECT * FROM books ORDER BY title`
+const listStatement = `SELECT * FROM reports ORDER BY title`
 
-// ListReports returns a list of books, ordered by title.
+// ListReports returns a list of reports, ordered by title.
 func (db *mysqlDB) ListReports() ([]*Report, error) {
 	rows, err := db.list.Query()
 	if err != nil {
