@@ -9,26 +9,35 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
+// CREATE TABLE IF NOT EXISTS books (
+// 	id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+// 	title VARCHAR(255) NULL,
+// 	author VARCHAR(255) NULL,
+// 	publishedDate VARCHAR(255) NULL,
+// 	imageUrl VARCHAR(255) NULL,
+// 	description TEXT NULL,
+// 	createdBy VARCHAR(255) NULL,
+// 	createdById VARCHAR(255) NULL,
+// 	PRIMARY KEY (id)
+
 var createTableStatements = []string{
 	`CREATE DATABASE IF NOT EXISTS boon DEFAULT CHARACTER SET = 'utf8' DEFAULT COLLATE 'utf8_general_ci';`,
 	`USE boon;`,
 	`CREATE TABLE IF NOT EXISTS reports (
-		id INT UNSIGNED INT NOT NULL AUTO_INCREMENT,
+		id INT UNSIGNED NOT NULL AUTO_INCREMENT,
 		header VARCHAR(255) NULL,
-		body VARCHAR(255) NULL,
+		description TEXT NULL,
 		author VARCHAR(255) NULL,
-		coords VARCHAR(255) NULL,
 		PRIMARY KEY (id)
 	)`,
 }
 
 // Report type
 type Report struct {
-	ID     int64
-	Header string
-	Body   string
-	Coords []int
-	Author string
+	ID          int64
+	Header      string
+	Description string
+	Author      string
 }
 
 // mysqlDB persists reports to a MySQL instance.
@@ -64,7 +73,7 @@ func NewMySQLDB() (*mysqlDB, error) {
 
 	// Prepared statements. The actual SQL queries are in the code near the
 	// relevant method (e.g. addReport).
-	if db.get, err = conn.Prepare(listStatement); err != nil {
+	if db.list, err = conn.Prepare(listStatement); err != nil {
 		return nil, fmt.Errorf("mysql: prepare get: %v", err)
 	}
 	if db.insert, err = conn.Prepare(insertStatement); err != nil {
@@ -93,29 +102,27 @@ type rowScanner interface {
 // scanReport reads a report from a sql.Row or sql.Rows
 func scanReport(s rowScanner) (*Report, error) {
 	var (
-		id     int64
-		header sql.NullString
-		body   sql.NullString
-		coords []int
-		author sql.NullString
+		id          int64
+		header      sql.NullString
+		description sql.NullString
+		author      sql.NullString
 	)
-	if err := s.Scan(&id, &header, &body, &coords, &author); err != nil {
+	if err := s.Scan(&id, &header, &description, &author); err != nil {
 		return nil, err
 	}
 
 	r := &Report{
-		ID:     id,
-		Header: header.String,
-		Body:   body.String,
-		Coords: coords,
-		Author: author.String,
+		ID:          id,
+		Header:      header.String,
+		Description: description.String,
+		Author:      author.String,
 	}
 	return r, nil
 }
 
-const listStatement = `SELECT * FROM reports ORDER BY title`
+const listStatement = `SELECT * FROM reports ORDER BY id`
 
-// ListReports returns a list of reports, ordered by title.
+// ListReports returns a list of reports, ordered by id.
 func (db *mysqlDB) ListReports() ([]*Report, error) {
 	rows, err := db.list.Query()
 	if err != nil {
@@ -138,12 +145,12 @@ func (db *mysqlDB) ListReports() ([]*Report, error) {
 
 const insertStatement = `
   INSERT INTO reports (
-    header, body, author, coords
-  ) VALUES (?, ?, ?, ?)`
+    header, description, author
+  ) VALUES (?, ?, ?)`
 
 // AddReport saves a given report, assigning it a new ID.
 func (db *mysqlDB) AddReport(rep *Report) (id int64, err error) {
-	r, err := execAffectingOneRow(db.insert, rep.Header, rep.Body, rep.Author, rep.Coords)
+	r, err := execAffectingOneRow(db.insert, rep.Header, rep.Description, rep.Author)
 	if err != nil {
 		return 0, err
 	}
@@ -168,7 +175,7 @@ func (db *mysqlDB) DeleteReport(id int64) error {
 
 const updateStatement = `
   UPDATE reports
-  SET title=?, author=?, publishedDate=?, imageUrl=?, description=?, createdBy=?, createdById=?
+  SET id=?, header=?, description=?, author=?
   WHERE id = ?`
 
 // UpdateReport updates the entry for a given report.
@@ -177,7 +184,7 @@ func (db *mysqlDB) UpdateReport(r *Report) error {
 		return errors.New("mysql: report with unassigned ID passed into updateReport")
 	}
 
-	_, err := execAffectingOneRow(db.insert, r.Header, r.Body, r.Author, r.Coords, r.ID)
+	_, err := execAffectingOneRow(db.insert, r.Header, r.Description, r.Author, r.ID)
 	return err
 }
 
