@@ -1,5 +1,9 @@
 package server
 
-func getUserData() {
+func getUserData(user string, c []int) {
+
+}
+
+func newUser() {
 
 }

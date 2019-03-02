@@ -1,9 +1,10 @@
 package server
 
+// Report struct
 type Report struct {
-	id          int
-	header      string
-	body        string
-	coordinates []int
-	author      string
+	ID     int
+	Header string
+	Body   string
+	Coords []int
+	Author string
 }
