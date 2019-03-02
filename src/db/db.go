@@ -1,4 +1,4 @@
-package server
+package db
 
 import (
 	"database/sql"
@@ -22,67 +22,34 @@ var createTableStatements = []string{
 	)`,
 }
 
+// Report type
+type Report struct {
+	ID     int64
+	Header string
+	Body   string
+	Coords []int
+	Author string
+}
+
 // mysqlDB persists reports to a MySQL instance.
 type mysqlDB struct {
 	conn *sql.DB
 
 	list   *sql.Stmt
-	listBy *sql.Stmt
 	insert *sql.Stmt
 	get    *sql.Stmt
 	update *sql.Stmt
 	delete *sql.Stmt
 }
 
-// ReportDatabase interface
-var _ ReportDatabase = &mysqlDB{}
-
-type MySQLConfig struct {
-	// Optional.
-	Username, Password string
-
-	// Host of the MySQL instance.
-	//
-	// If set, UnixSocket should be unset.
-	Host string
-
-	// Port of the MySQL instance.
-	//
-	// If set, UnixSocket should be unset.
-	Port int
-
-	// UnixSocket is the filepath to a unix socket.
-	//
-	// If set, Host and Port should be unset.
-	UnixSocket string
-}
-
-// dataStoreName returns a connection string suitable for sql.Open.
-func (c MySQLConfig) dataStoreName(databaseName string) string {
-	var cred string
-	// [username[:password]@]
-	if c.Username != "" {
-		cred = c.Username
-		if c.Password != "" {
-			cred = cred + ":" + c.Password
-		}
-		cred = cred + "@"
-	}
-
-	if c.UnixSocket != "" {
-		return fmt.Sprintf("%sunix(%s)/%s", cred, c.UnixSocket, databaseName)
-	}
-	return fmt.Sprintf("%stcp([%s]:%d)/%s", cred, c.Host, c.Port, databaseName)
-}
-
-// newMySQLDB creates a new ReportDatabase backed by a given MySQL server.
-func newMySQLDB(config MySQLConfig) (ReportDatabase, error) {
+// NewMySQLDB creates a new ReportDatabase backed by a given MySQL server.
+func NewMySQLDB() (*mysqlDB, error) {
 	// Check database and table exists. If not, create it.
-	if err := config.ensureTableExists(); err != nil {
+	if err := ensureTableExists(); err != nil {
 		return nil, err
 	}
 
-	conn, err := sql.Open("mysql", config.dataStoreName("boon"))
+	conn, err := sql.Open("mysql", "root:password@/boon")
 	if err != nil {
 		return nil, fmt.Errorf("mysql: could not get a connection: %v", err)
 	}
@@ -96,8 +63,8 @@ func newMySQLDB(config MySQLConfig) (ReportDatabase, error) {
 	}
 
 	// Prepared statements. The actual SQL queries are in the code near the
-	// relevant method (e.g. addBook).
-	if db.get, err = conn.Prepare(getStatement); err != nil {
+	// relevant method (e.g. addReport).
+	if db.get, err = conn.Prepare(listStatement); err != nil {
 		return nil, fmt.Errorf("mysql: prepare get: %v", err)
 	}
 	if db.insert, err = conn.Prepare(insertStatement); err != nil {
@@ -123,12 +90,56 @@ type rowScanner interface {
 	Scan(dest ...interface{}) error
 }
 
-const getStatement = "SELECT * FROM reports WHERE id = ?"
+// scanReport reads a book from a sql.Row or sql.Rows
+func scanReport(s rowScanner) (*Report, error) {
+	var (
+		id     int64
+		header sql.NullString
+		body   sql.NullString
+		coords []int
+		author sql.NullString
+	)
+	if err := s.Scan(&id, &header, &body, &coords, &author); err != nil {
+		return nil, err
+	}
+
+	r := &Report{
+		ID:     id,
+		Header: header.String,
+		Body:   body.String,
+		Coords: coords,
+		Author: author.String,
+	}
+	return r, nil
+}
+
+const listStatement = `SELECT * FROM books ORDER BY title`
+
+// ListReports returns a list of books, ordered by title.
+func (db *mysqlDB) ListReports() ([]*Report, error) {
+	rows, err := db.list.Query()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var reports []*Report
+	for rows.Next() {
+		r, err := scanReport(rows)
+		if err != nil {
+			return nil, fmt.Errorf("mysql: could not read row: %v", err)
+		}
+
+		reports = append(reports, r)
+	}
+
+	return reports, nil
+}
 
 const insertStatement = `
   INSERT INTO reports (
     header, body, author, coords
-  ) VALUES (?, ?, ?, ?, ?, ?, ?)`
+  ) VALUES (?, ?, ?, ?)`
 
 // AddReport saves a given report, assigning it a new ID.
 func (db *mysqlDB) AddReport(rep *Report) (id int64, err error) {
@@ -146,7 +157,7 @@ func (db *mysqlDB) AddReport(rep *Report) (id int64, err error) {
 
 const deleteStatement = `DELETE FROM reports WHERE id = ?`
 
-// DeleteReport removes a given book by its ID.
+// DeleteReport removes a given report by its ID.
 func (db *mysqlDB) DeleteReport(id int64) error {
 	if id == 0 {
 		return errors.New("mysql: report with unassigned ID passed into deleteReport")
@@ -157,14 +168,13 @@ func (db *mysqlDB) DeleteReport(id int64) error {
 
 const updateStatement = `
   UPDATE reports
-  SET title=?, author=?, publishedDate=?, imageUrl=?, description=?,
-      createdBy=?, createdById=?
+  SET title=?, author=?, publishedDate=?, imageUrl=?, description=?, createdBy=?, createdById=?
   WHERE id = ?`
 
-// UpdateBook updates the entry for a given book.
-func (db *mysqlDB) UpdateBook(r *Report) error {
+// UpdateReport updates the entry for a given report.
+func (db *mysqlDB) UpdateReport(r *Report) error {
 	if r.ID == 0 {
-		return errors.New("mysql: book with unassigned ID passed into updateBook")
+		return errors.New("mysql: report with unassigned ID passed into updateReport")
 	}
 
 	_, err := execAffectingOneRow(db.insert, r.Header, r.Body, r.Author, r.Coords, r.ID)
@@ -172,8 +182,8 @@ func (db *mysqlDB) UpdateBook(r *Report) error {
 }
 
 // ensureTableExists checks the table exists. If not, it creates it.
-func (config MySQLConfig) ensureTableExists() error {
-	conn, err := sql.Open("mysql", config.dataStoreName(""))
+func ensureTableExists() error {
+	conn, err := sql.Open("mysql", "root:password@/boon")
 	if err != nil {
 		return fmt.Errorf("mysql: could not get a connection: %v", err)
 	}

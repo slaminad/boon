@@ -1,4 +1,4 @@
-package server
+package db
 
 func getUserData(user string, c []int) {
 
