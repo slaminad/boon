@@ -99,19 +99,111 @@
 </footer>
 
 <!-- Modal for Creating a Report -->
-<div id="reportModal" class="w3-modal">
+<link rel="stylesheet" href="css/modal.css">
+<link rel="stylesheet" href="css/checkboxes.css">
+
+<div id="reportModal" class="modal">
 
   <!-- Modal content -->
-  <div class="w3-modal-content">
-    <span class="close">&times;</span>
-    <h2>Report a Case</h2>
+  <div class="modal-content">
+
+    <div class="modal-header">
+      <span class="close">&times;</span>
+      <h2>Report a Case</h2>
+    </div>
+
+    <!-- Reporting Cases -->
+    <form action="js/input-handling.js">
+      <div class="modal-body">
+          <h3>Please mark the current situation(s) at your location.</h3>
+
+            <fieldset id="food">Food
+              <ul class="container">
+                <li>
+                  <label>Available
+                    <input type="radio" value="1" name="food">
+                    <span class="checkmark"></span>
+                  </label>
+                </li>
+              </ul>
+              <ul class="container">
+                <li>
+                  <label>Unvailable
+                    <input type="radio" value="0" name="food">
+                    <span class="checkmark"></span>
+                  </label>
+                </li>
+              </ul>
+            </fieldset>
+
+            <fieldset id="water">Water
+              <ul class="container">
+                <li>
+                  <label>Available
+                    <input type="radio" value="1" name="water">
+                    <span class="checkmark"></span>
+                  </label>
+                </li>
+              </ul>
+              <ul class="container">
+                <li>
+                  <label>Unvailable
+                    <input type="radio" value="0" name="water">
+                    <span class="checkmark"></span>
+                  </label>
+                </li>
+              </ul>
+            </fieldset>
+
+            <fieldset id="shelter">Shelter
+              <ul class="container">
+                <li>
+                  <label>Available
+                    <input type="radio" value="1" name="shelter">
+                    <span class="checkmark"></span>
+                  </label>
+                </li>
+              </ul>
+              <ul class="container">
+                <li>
+                  <label>Unavailable
+                    <input type="radio" value="0" name="shelter">
+                    <span class="checkmark"></span>
+                  </label>
+                </li>
+              </ul>
+            </fieldset>
+
+            <fieldset id="first-aid">First Aid
+              <ul class="container">
+                <li>
+                  <label>Available
+                    <input type="radio" value="1" name="first-aid">
+                    <span class="checkmark"></span>
+                  </label>
+                </li>
+              </ul>
+              <ul class="container">
+                <li>
+                  <label>Unavailable
+                    <input type="radio" value="0" name="first-aid">
+                    <span class="checkmark"></span>
+                  </label>
+                </li>
+              </ul>
+            </fieldset>
+      </div>
+
+      <div class="modal-footer">
+        <input type="submit" value="Submit" class="w3-bar-item w3-button">
+      </div>
+
+    </form>
+
+    <script src="js/input-handling.js"></script>
+
   </div>
-  <div class="modal-body">
-    <p>This is where things can go for option</p>
-  </div>
-  <div class="modal-footer">
-    <h3>Modal footer</h3>
-  </div>
+
 </div>
 
 <script src="js/modal.js"></script>
