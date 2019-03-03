@@ -22,12 +22,6 @@ var createTableStatements = []string{
 		community VARCHAR(255) NULL,
 		PRIMARY KEY (id)
 	)`,
-	`CREATE TABLE IF NOT EXISTS communities (
-		name VARCHAR(255) NULL,
-		description VARCHAR(255) NULL,
-		tips TEXT NULL,
-		PRIMARY KEY(name)
-	)`,
 }
 
 // Report type
@@ -153,10 +147,10 @@ func (db *MysqlDB) ListReports() ([]*Report, error) {
 const insertStatement = `
   INSERT INTO reports (
     header, description, author, lat, lon, community
-  ) VALUES (?, ?, ?, ?, ?)`
+  ) VALUES (?, ?, ?, ?, ?, ?)`
 
 // AddReport saves a given report, assigning it a new ID.
-func (db *MysqlDB) AddReport(rep *Report) (id int64, err error) {
+func (db *MysqlDB) AddReport(rep Report) (id int64, err error) {
 	r, err := execAffectingOneRow(db.insert, rep.Header, rep.Description, rep.Author,
 		rep.Lat, rep.Lon, rep.Community)
 	if err != nil {
