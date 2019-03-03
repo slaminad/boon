@@ -99,19 +99,43 @@
 </footer>
 
 <!-- Modal for Creating a Report -->
-<div id="reportModal" class="w3-modal">
+<link rel="stylesheet" href="css/modal.css">
+<link rel="stylesheet" href="css/checkboxes.css">
+
+<div id="reportModal" class="modal">
 
   <!-- Modal content -->
-  <div class="w3-modal-content">
-    <span class="close">&times;</span>
-    <h2>Report a Case</h2>
+  <div class="modal-content">
+
+    <div class="modal-header">
+      <span class="close">&times;</span>
+      <h2>Report a Case</h2>
+    </div>
+
+    <div class="modal-body">
+        <h3>Please mark the current situation(s) at your location.</h3>
+        <div id="foodCheckboxes">
+          <label>Food</label>
+          <ul>
+            <li>
+              <input type="checkbox"> Available
+              <span class="checkmark"></span>
+            </li>
+            <li>
+              <input type="checkbox"> Unavailable
+              <span class="checkmark"></span>
+            </li>
+          </ul>
+
+        </div>
+      </div>
+
+    <div class="modal-footer">
+      <h3>Modal footer</h3>
+    </div>
+
   </div>
-  <div class="modal-body">
-    <p>This is where things can go for option</p>
-  </div>
-  <div class="modal-footer">
-    <h3>Modal footer</h3>
-  </div>
+
 </div>
 
 <script src="js/modal.js"></script>
