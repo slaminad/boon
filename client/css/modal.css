@@ -23,7 +23,7 @@ body {font-family: Arial, Helvetica, sans-serif;}
 .modal-content {
     margin-left: 11%;
     position: fixed;
-    top: 15%;
+    top: 10%;
     background-color: #fefefe;
     width: 75%;
     -webkit-animation-name: slideIn;
@@ -64,12 +64,12 @@ body {font-family: Arial, Helvetica, sans-serif;}
 /* Add Animation */
 @-webkit-keyframes slideIn {
     from {top: -10%; opacity: 0}
-    to {top: 15%; opacity: 1}
+    to {top: 10%; opacity: 1}
 }
 
 @keyframes slideIn {
     from {top: -10%; opacity: 0}
-    to {top: 15%; opacity: 1}
+    to {top: 10%; opacity: 1}
 }
 
 @-webkit-keyframes fadeIn {
