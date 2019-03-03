@@ -9,17 +9,6 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
-// CREATE TABLE IF NOT EXISTS books (
-// 	id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-// 	title VARCHAR(255) NULL,
-// 	author VARCHAR(255) NULL,
-// 	publishedDate VARCHAR(255) NULL,
-// 	imageUrl VARCHAR(255) NULL,
-// 	description TEXT NULL,
-// 	createdBy VARCHAR(255) NULL,
-// 	createdById VARCHAR(255) NULL,
-// 	PRIMARY KEY (id)
-
 var createTableStatements = []string{
 	`CREATE DATABASE IF NOT EXISTS boon DEFAULT CHARACTER SET = 'utf8' DEFAULT COLLATE 'utf8_general_ci';`,
 	`USE boon;`,
@@ -28,7 +17,16 @@ var createTableStatements = []string{
 		header VARCHAR(255) NULL,
 		description TEXT NULL,
 		author VARCHAR(255) NULL,
+		lat INT NULL,
+		lon INT NULL,
+		community VARCHAR(255) NULL,
 		PRIMARY KEY (id)
+	)`,
+	`CREATE TABLE IF NOT EXISTS communities (
+		name VARCHAR(255) NULL,
+		description VARCHAR(255) NULL,
+		tips TEXT NULL,
+		PRIMARY KEY(name)
 	)`,
 }
 
@@ -38,10 +36,13 @@ type Report struct {
 	Header      string
 	Description string
 	Author      string
+	Lat         float64
+	Lon         float64
+	Community   string
 }
 
-// mysqlDB persists reports to a MySQL instance.
-type mysqlDB struct {
+// MysqlDB persists reports to a MySQL instance.
+type MysqlDB struct {
 	conn *sql.DB
 
 	list   *sql.Stmt
@@ -52,7 +53,7 @@ type mysqlDB struct {
 }
 
 // NewMySQLDB creates a new ReportDatabase backed by a given MySQL server.
-func NewMySQLDB() (*mysqlDB, error) {
+func NewMySQLDB() (*MysqlDB, error) {
 	// Check database and table exists. If not, create it.
 	if err := ensureTableExists(); err != nil {
 		return nil, err
@@ -67,7 +68,7 @@ func NewMySQLDB() (*mysqlDB, error) {
 		return nil, fmt.Errorf("mysql: could not establish a good connection: %v", err)
 	}
 
-	db := &mysqlDB{
+	db := &MysqlDB{
 		conn: conn,
 	}
 
@@ -90,7 +91,7 @@ func NewMySQLDB() (*mysqlDB, error) {
 }
 
 // Close closes the database, freeing up any resources.
-func (db *mysqlDB) Close() {
+func (db *MysqlDB) Close() {
 	db.conn.Close()
 }
 
@@ -106,8 +107,11 @@ func scanReport(s rowScanner) (*Report, error) {
 		header      sql.NullString
 		description sql.NullString
 		author      sql.NullString
+		lat         float64
+		lon         float64
+		community   sql.NullString
 	)
-	if err := s.Scan(&id, &header, &description, &author); err != nil {
+	if err := s.Scan(&id, &header, &description, &author, &lat, &lon, &community); err != nil {
 		return nil, err
 	}
 
@@ -116,6 +120,9 @@ func scanReport(s rowScanner) (*Report, error) {
 		Header:      header.String,
 		Description: description.String,
 		Author:      author.String,
+		Lat:         lat,
+		Lon:         lon,
+		Community:   community.String,
 	}
 	return r, nil
 }
@@ -123,7 +130,7 @@ func scanReport(s rowScanner) (*Report, error) {
 const listStatement = `SELECT * FROM reports ORDER BY id`
 
 // ListReports returns a list of reports, ordered by id.
-func (db *mysqlDB) ListReports() ([]*Report, error) {
+func (db *MysqlDB) ListReports() ([]*Report, error) {
 	rows, err := db.list.Query()
 	if err != nil {
 		return nil, err
@@ -145,12 +152,13 @@ func (db *mysqlDB) ListReports() ([]*Report, error) {
 
 const insertStatement = `
   INSERT INTO reports (
-    header, description, author
-  ) VALUES (?, ?, ?)`
+    header, description, author, lat, lon, community
+  ) VALUES (?, ?, ?, ?, ?)`
 
 // AddReport saves a given report, assigning it a new ID.
-func (db *mysqlDB) AddReport(rep *Report) (id int64, err error) {
-	r, err := execAffectingOneRow(db.insert, rep.Header, rep.Description, rep.Author)
+func (db *MysqlDB) AddReport(rep *Report) (id int64, err error) {
+	r, err := execAffectingOneRow(db.insert, rep.Header, rep.Description, rep.Author,
+		rep.Lat, rep.Lon, rep.Community)
 	if err != nil {
 		return 0, err
 	}
@@ -165,7 +173,7 @@ func (db *mysqlDB) AddReport(rep *Report) (id int64, err error) {
 const deleteStatement = `DELETE FROM reports WHERE id = ?`
 
 // DeleteReport removes a given report by its ID.
-func (db *mysqlDB) DeleteReport(id int64) error {
+func (db *MysqlDB) DeleteReport(id int64) error {
 	if id == 0 {
 		return errors.New("mysql: report with unassigned ID passed into deleteReport")
 	}
@@ -175,16 +183,17 @@ func (db *mysqlDB) DeleteReport(id int64) error {
 
 const updateStatement = `
   UPDATE reports
-  SET id=?, header=?, description=?, author=?
+  SET id=?, header=?, description=?, author=?, lat=?, lon=?, community=?
   WHERE id = ?`
 
 // UpdateReport updates the entry for a given report.
-func (db *mysqlDB) UpdateReport(r *Report) error {
+func (db *MysqlDB) UpdateReport(r *Report) error {
 	if r.ID == 0 {
 		return errors.New("mysql: report with unassigned ID passed into updateReport")
 	}
 
-	_, err := execAffectingOneRow(db.insert, r.Header, r.Description, r.Author, r.ID)
+	_, err := execAffectingOneRow(db.insert, r.Header, r.Description, r.Author,
+		r.Lat, r.Lon, r.Community, r.ID)
 	return err
 }
 
