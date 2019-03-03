@@ -4,29 +4,17 @@
   <title>boon.</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
-  <meta name="google-signin-client_id" content="360258866622-t5s0h770ss3085tjrjv18g6dsj9v443d.apps.googleusercontent.com">
-  <script src="https://apis.google.com/js/platform.js" async defer></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  <script src="script.js"></script>
-
   <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 </head>
 
 <body>
-
-<!-- Client Id : 360258866622-i21nvprodr99obunrt134vlqt8a4j6f0.apps.googleusercontent.com
-    Client Secret: hvSsgjQb8gfn_5M7LL07nfVY
--->
-
 <!-- Navbar (sit on top) -->
 <div class="w3-top">
   <div class="w3-bar w3-black w3-wide w3-padding w3-card">
     <a href="#home" class="w3-bar-item w3-button"><b>boon.</b></a>
     <!-- Float links to the right. Hide them on small screens -->
     <div class="w3-right w3-hide-small">
-      <a href="#projects" class="w3-bar-item w3-button">Login.</a>
+      <a class="w3-bar-item w3-button" id="create">Create.</a>
       <a href="#about" class="w3-bar-item w3-button">About.</a>
       <a href="#contact" class="w3-bar-item w3-button">Contact.</a>
     </div>
@@ -65,128 +53,7 @@
 </head>
 <body>
 <div id="map"></div>
-<script>
-  // Note: This example requires that you consent to location sharing when
-  // prompted by your browser. If you see the error "The Geolocation service
-  // failed.", it means you probably did not give permission for the browser to
-  // locate you.
-  var map, infoWindow;
-  function initMap() {
-    map = new google.maps.Map(document.getElementById('map'), {
-      center: {lat: -34.397, lng: 150.644},
-      zoom: 15,
-      styles: [
-        {elementType: 'geometry', stylers: [{color: '#242f3e'}]},
-        {elementType: 'labels.text.stroke', stylers: [{color: '#242f3e'}]},
-        {elementType: 'labels.text.fill', stylers: [{color: '#746855'}]},
-        {
-          featureType: 'administrative.locality',
-          elementType: 'labels.text.fill',
-          stylers: [{color: '#d59563'}]
-        },
-        {
-          featureType: 'poi',
-          elementType: 'labels.text.fill',
-          stylers: [{color: '#d59563'}]
-        },
-        {
-          featureType: 'poi.park',
-          elementType: 'geometry',
-          stylers: [{color: '#263c3f'}]
-        },
-        {
-          featureType: 'poi.park',
-          elementType: 'labels.text.fill',
-          stylers: [{color: '#6b9a76'}]
-        },
-        {
-          featureType: 'road',
-          elementType: 'geometry',
-          stylers: [{color: '#38414e'}]
-        },
-        {
-          featureType: 'road',
-          elementType: 'geometry.stroke',
-          stylers: [{color: '#212a37'}]
-        },
-        {
-          featureType: 'road',
-          elementType: 'labels.text.fill',
-          stylers: [{color: '#9ca5b3'}]
-        },
-        {
-          featureType: 'road.highway',
-          elementType: 'geometry',
-          stylers: [{color: '#746855'}]
-        },
-        {
-          featureType: 'road.highway',
-          elementType: 'geometry.stroke',
-          stylers: [{color: '#1f2835'}]
-        },
-        {
-          featureType: 'road.highway',
-          elementType: 'labels.text.fill',
-          stylers: [{color: '#f3d19c'}]
-        },
-        {
-          featureType: 'transit',
-          elementType: 'geometry',
-          stylers: [{color: '#2f3948'}]
-        },
-        {
-          featureType: 'transit.station',
-          elementType: 'labels.text.fill',
-          stylers: [{color: '#d59563'}]
-        },
-        {
-          featureType: 'water',
-          elementType: 'geometry',
-          stylers: [{color: '#17263c'}]
-        },
-        {
-          featureType: 'water',
-          elementType: 'labels.text.fill',
-          stylers: [{color: '#515c6d'}]
-        },
-        {
-          featureType: 'water',
-          elementType: 'labels.text.stroke',
-          stylers: [{color: '#17263c'}]
-        }
-      ]
-    });
-    infoWindow = new google.maps.InfoWindow;
-
-    // Try HTML5 geolocation.
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(function(position) {
-        var pos = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        };
-
-        infoWindow.setPosition(pos);
-        infoWindow.setContent('Location found.');
-        infoWindow.open(map);
-        map.setCenter(pos);
-      }, function() {
-        handleLocationError(true, infoWindow, map.getCenter());
-      });
-    } else {
-      // Browser doesn't support Geolocation
-      handleLocationError(false, infoWindow, map.getCenter());
-    }
-  }
-
-  function handleLocationError(browserHasGeolocation, infoWindow, pos) {
-    infoWindow.setPosition(pos);
-    infoWindow.setContent(browserHasGeolocation ?
-            'Error: The Geolocation service failed.' :
-            'Error: Your browser doesn\'t support geolocation.');
-    infoWindow.open(map);
-  }
-</script>
+<script type="text/javascript" src="js/map.js"></script>
 <script async defer
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDI4ypavp8FV5wnAHiPwQ9ajz24I8AYMp4&callback=initMap">
 </script>
@@ -197,8 +64,6 @@
 <!-- Page content -->
 
 <div class="w3-padding w3-black" style="height:10%"></div>
-
-<div class="g-signin2" data-onsuccess="onSignIn"></div>
 
 <div class="w3-content w3-padding" style="max-width:1564px">
   <!-- Contact Section -->
@@ -232,6 +97,24 @@
     </p>
   </div></p>
 </footer>
+
+<!-- Modal for Creating a Report -->
+<div id="reportModal" class="w3-modal">
+
+  <!-- Modal content -->
+  <div class="w3-modal-content">
+    <span class="close">&times;</span>
+    <h2>Report a Case</h2>
+  </div>
+  <div class="modal-body">
+    <p>This is where things can go for option</p>
+  </div>
+  <div class="modal-footer">
+    <h3>Modal footer</h3>
+  </div>
+</div>
+
+<script src="js/modal.js"></script>
 
 </body>
 </html>
